@@ -15,4 +15,4 @@ jobs:
       - name: Install Dependencies
         run: echo install
       - name: Run Python
-        run: echo Hello, world!
+        run: python main.py "${{ secrets.SMTP_PW }}"
