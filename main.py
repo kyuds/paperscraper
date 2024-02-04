@@ -1,19 +1,13 @@
-import smtplib, sys
+import sys
+from client import Client
 
 def run():
-    pass
-
-smtp = smtplib.SMTP('smtp.gmail.com', port='587')
-smtp.ehlo()
-smtp.starttls()
-smtp.login('kyuds.bot@gmail.com', sys.argv[1])
-
-smtp.sendmail('kyuds.bot@gmail.com',
+    client = Client(sys.argv[1], sys.argv[2])
+    client.smtp.sendmail('kyuds.bot@gmail.com',
               'kyuseung1016@gmail.com',
               "Hi!")
-              
-smtp.quit()
+    client.quit()
 
-# if __name__ == "__main__":
-#     run()
+if __name__ == "__main__":
+    run()
 
