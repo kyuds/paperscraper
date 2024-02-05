@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Dependencies
-        run: echo install
+        run: pip install -r requirements.txt
       - name: Scrape Data
         run: echo scrape
       - name: Update html
