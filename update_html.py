@@ -14,6 +14,6 @@ HTML = """\
 
 if __name__ == "__main__":
     curr = datetime.datetime.now()
-    path = "paperscraper/pdf/" + curr.strftime("%Y%m%d") + ".pdf"
+    path = "pdf/" + curr.strftime("%Y%m%d") + ".pdf"
     with open("index.html", "w") as file:
         file.write(HTML.format(url=path))
