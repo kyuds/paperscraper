@@ -21,7 +21,6 @@ HTML = """\
           text-decoration: none;
           font-size: 1rem;
           padding: 2rem;
-          border: solid white;
           text-align: center;
       }
       div {
