@@ -1,34 +1,32 @@
-import datetime
-
 HTML = """\
 <!DOCTYPE html>
 <html>
   <head>
     <style>
-      * {
+      * {{
         margin: 0;
         padding: 0;
         box-sizing: border-box;
         font-family: 'Amiko', sans-serif;
         letter-spacing: 8px;
-      }
-      html, body {
+      }}
+      html, body {{
           width: 100vw;
           background-color: #030a15;
-      }
-      a {
+      }}
+      a {{
           color: white;
           text-decoration: none;
           font-size: 1rem;
           padding: 2rem;
           text-align: center;
-      }
-      div {
+      }}
+      div {{
           display: flex;
           justify-content: center;
           align-items: center;
           min-height: 100vh;
-      }
+      }}
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Amiko&display=swap" rel="stylesheet">
     <meta http-equiv="refresh" content="0; url='{url}'" />
@@ -43,8 +41,6 @@ HTML = """\
 </html>
 """
 
-if __name__ == "__main__":
-    curr = datetime.datetime.now()
-    path = "pdf/" + curr.strftime("%Y%m%d") + ".pdf"
-    with open("index.html", "w") as file:
-        file.write(HTML.format(url=path))
+def update_html_file(filename, pdf_name):
+    with open(filename, "w") as file:
+        file.write(HTML.format(url=pdf_name))

@@ -1,0 +1,14 @@
+{
+    "update-time": "15",
+    "html-file-name": "index.html",
+    "category-filter": [
+        "cs.AI", "cs.CL", "cs.CV", 
+        "cs.DB", "cs.DC", "cs.DL", 
+        "cs.LG", "cs.MA", "cs.NE", 
+        "cs.NI", "cs.OS", "cs.PL", 
+        "cs.SI"
+    ],
+    "priority-filter": [
+        "cs.DC", "cs.OS", "cs.MA"
+    ]
+}
