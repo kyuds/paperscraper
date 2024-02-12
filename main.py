@@ -3,49 +3,82 @@ import json
 import sys
 
 from datetime import datetime, date, timedelta
-from update_html import update_html_file
-from pdf_converter import save_to_pdf_file
+from redirect import update_html
 
-def search_query(utctime):
-    s = "submittedDate:[{} TO {}]"
-    t = date.today()
-    d2 = (t - timedelta(days = 1)).strftime("%Y%m%d") + utctime + "00"
-    d1 = (t - timedelta(days = 2)).strftime("%Y%m%d") + utctime + "00"
-    return s.format(d1, d2)
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.pagesizes import A4
 
-def get_arxiv_papers(conf):
-    client = arxiv.Client()
-    search = arxiv.Search(
-        query = search_query(conf["update-time"]),
-        max_results = float("inf"),
-    )
+class ArxivQuery:
+    def __init__(self, conf):
+        self.conf = conf
+    
+    def get_papers(self):
+        client = arxiv.Client()
+        search = arxiv.Search(
+            query = ArxivQuery.__search_query(self.conf["update-time"]),
+            max_results = float("inf"),
+        )
 
-    total_count, relevant_count = 0, 0
-    initial_filtered = []
+        total_count, relevant_count = 0, 0
+        initial_filtered = []
 
-    for r in client.results(search):
-        for ct in r.categories:
-            if ct in conf["category-filter"]:
-                initial_filtered.append(r)
-                relevant_count += 1
-                break
-        total_count += 1
+        for r in client.results(search):
+            for ct in r.categories:
+                if ct in self.conf["category-filter"]:
+                    initial_filtered.append(r)
+                    relevant_count += 1
+                    break
+            total_count += 1
 
-    print("Total Documents:", total_count)
-    print("Relevant Documents:", relevant_count)
+        print("Total Documents:", total_count)
+        print("Relevant Documents:", relevant_count)
 
-    return initial_filtered
+        return initial_filtered
 
-def get_pdf_file_name():
-    c = datetime.now()
-    return "pdf/" + c.strftime("%Y%m%d") + ".pdf"
+    @staticmethod
+    def __search_query(utctime):
+        s = "submittedDate:[{} TO {}]"
+        t = date.today()
+        d2 = (t - timedelta(days = 1)).strftime("%Y%m%d") + utctime + "00"
+        d1 = (t - timedelta(days = 2)).strftime("%Y%m%d") + utctime + "00"
+        return s.format(d1, d2)
+
+class Report:
+    def __init__(self, papers):
+        self.papers = papers
+        self.file = Canvas(Report.filename(), pagesize=A4)
+
+    @staticmethod
+    def filename():
+        c = datetime.now()
+        return "pdf/" + c.strftime("%Y%m%d") + ".pdf"
+
+    def generate(self):
+        self.__setup_file()
+        self.__create_header()
+
+        for paper in self.papers:
+            self.__create_section(paper)
+
+        self.file.save()
+
+    def __setup_file(self):
+        self.file.drawCentredString(290, 720, "test")
+
+    def __create_header(self):
+        pass
+
+    def __create_section(self, paper):
+        pass
+
 
 if __name__ == "__main__":
     config_file = sys.argv[1]
     with open(config_file) as json_file:
         conf = json.load(json_file)
-        papers = get_arxiv_papers(conf)
+        query = ArxivQuery(conf)
+        papers = query.get_papers()
         # need filtering with GPT
-        pdf_name = get_pdf_file_name()
-        save_to_pdf_file(papers, pdf_name)
-        update_html_file(conf["html-file-name"], pdf_name)
+        report = Report(papers)
+        report.generate()
+        update_html(conf["html-file-name"], Report.filename())

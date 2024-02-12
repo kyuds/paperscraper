@@ -41,6 +41,6 @@ HTML = """\
 </html>
 """
 
-def update_html_file(filename, pdf_name):
+def update_html(filename, pdf_name):
     with open(filename, "w") as file:
         file.write(HTML.format(url=pdf_name))
