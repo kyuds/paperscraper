@@ -10,5 +10,6 @@
     ],
     "priority-filter": [
         "cs.DC", "cs.OS", "cs.MA"
-    ]
+    ],
+    "archived-pdf-count": "30"
 }

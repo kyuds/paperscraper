@@ -1,6 +1,8 @@
 import arxiv
 import json
 import sys
+import glob
+import os
 
 from datetime import datetime, date, timedelta
 from redirect import update_html
@@ -51,7 +53,7 @@ class Report:
     @staticmethod
     def filename():
         c = datetime.now()
-        return "pdf/" + c.strftime("%Y%m%d") + ".pdf"
+        return os.path.join("pdf", c.strftime("%Y%m%d") + ".pdf")
 
     def generate(self):
         self.__setup_file()
@@ -71,6 +73,14 @@ class Report:
     def __create_section(self, paper):
         pass
 
+def remove_stale_pdf(n):
+    # sanity check
+    assert n > 0, "Number of pdfs to be kept should be positive."
+    pdfs = glob.glob(os.path.join("pdf", "*.pdf"))
+
+    if len(pdfs) > n:
+        pdfs.sort()
+        os.system("rm {}".format(pdfs[0]))
 
 if __name__ == "__main__":
     config_file = sys.argv[1]
@@ -82,3 +92,4 @@ if __name__ == "__main__":
         report = Report(papers)
         report.generate()
         update_html(conf["html-file-name"], Report.filename())
+        remove_stale_pdf(int(conf["archived-pdf-count"]))
