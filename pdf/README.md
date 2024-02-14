@@ -1,1 +1,1 @@
-Daily arxiv paper abstract summary pdf repository. Stores up to 30 days worth of data.
+Daily arxiv paper abstract summary pdf repository.

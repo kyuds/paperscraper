@@ -11,5 +11,10 @@
     "priority-filter": [
         "cs.DC", "cs.OS", "cs.MA"
     ],
-    "archived-pdf-count": "30"
+    "remove-filter": [
+        "astro", "cond", "gr", "hep",
+        "nucl", "physics", "q-bio"
+    ],
+    "archived-pdf-count": "30",
+    "num-reports": "15"
 }
