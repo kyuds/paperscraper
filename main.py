@@ -54,7 +54,9 @@ class ArxivQuery:
         t = date.today()
         d2 = (t - timedelta(days = 1)).strftime("%Y%m%d") + utctime + "00"
         d1 = (t - timedelta(days = 2)).strftime("%Y%m%d") + utctime + "00"
-        return s.format(d1, d2)
+        query = s.format(d1, d2)
+        print("Query:", query) # for logging purposes. 
+        return query
 
 class Report:
     def __init__(self, papers):
