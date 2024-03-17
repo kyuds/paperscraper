@@ -52,8 +52,8 @@ class ArxivQuery:
     def __search_query(utctime):
         s = "submittedDate:[{} TO {}]"
         t = date.today()
-        d2 = (t - timedelta(days = 1)).strftime("%Y%m%d") + utctime + "00"
-        d1 = (t - timedelta(days = 2)).strftime("%Y%m%d") + utctime + "00"
+        d2 = (t - timedelta(days = 2)).strftime("%Y%m%d") + utctime + "00"
+        d1 = (t - timedelta(days = 3)).strftime("%Y%m%d") + utctime + "00"
         query = s.format(d1, d2)
         print("Query:", query) # for logging purposes. 
         return query
