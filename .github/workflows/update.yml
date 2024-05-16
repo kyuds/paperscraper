@@ -1,8 +1,8 @@
 name: Update Abstracts
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 15 * * *'
+  #schedule:
+  #  - cron: '0 15 * * *'
 
 jobs:
   get-papers:
