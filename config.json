@@ -3,18 +3,18 @@
     "html-file-name": "index.html",
     "category-filter": [
         "cs.AI", "cs.CL", "cs.CV", 
-        "cs.DB", "cs.DC", "cs.DL", 
-        "cs.LG", "cs.MA", "cs.NE", 
-        "cs.NI", "cs.OS", "cs.PL", 
-        "cs.SI"
+        "cs.DB", "cs.DC", "cs.LG", 
+        "cs.MA", "cs.NE", "cs.OS"
     ],
     "priority-filter": [
-        "cs.DC", "cs.OS", "cs.MA"
+        "cs.DC", "cs.MA"
     ],
     "remove-filter": [
         "astro", "cond", "gr", "hep",
         "nucl", "physics", "q-bio"
     ],
-    "archived-pdf-count": "30",
-    "num-reports": "15"
+    "archived-pdf-count": "10",
+    "openai-retry": "3",
+    "openai-model": "gpt-3.5-turbo",
+    "openai-max-tokens": "1024"
 }

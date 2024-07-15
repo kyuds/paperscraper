@@ -12,10 +12,10 @@ HTML = """\
       }}
       html, body {{
           width: 100vw;
-          background-color: #030a15;
+          background-color: white;
       }}
       a {{
-          color: white;
+          color: #030a15;
           text-decoration: none;
           font-size: 1rem;
           padding: 2rem;

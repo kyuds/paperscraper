@@ -3,9 +3,13 @@ import json
 import sys
 import glob
 import os
+import concurrent.futures
+import openai
+import time
 
 from datetime import datetime, date, timedelta
 from redirect import update_html
+from prompt import SUMMARIZER_PROMPT
 
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -40,7 +44,7 @@ class ArxivQuery:
                     sati = True
             if not deny and sati:
                 relevant_count += 1
-                initial_filtered.append(r)
+                initial_filtered.append(ArxivQuery.__paper_info(r))
             total_count += 1
 
         print("Total Documents:", total_count)
@@ -57,6 +61,15 @@ class ArxivQuery:
         query = s.format(d1, d2)
         print("Query:", query) # for logging purposes. 
         return query
+
+    @staticmethod
+    def __paper_info(paper):
+        info = {}
+        info["authors"] = paper.authors
+        info["title"] = paper.title
+        info["links"] = paper.links
+        info["abstract"] = paper.summary
+        return info
 
 class Report:
     def __init__(self, papers):
@@ -110,7 +123,8 @@ class Report:
         build = []
         self.__create_header(build)
         for paper in self.papers:
-            self.__create_section(paper, build)
+            if len(paper["summary"]) > 0:
+                self.__create_section(paper, build)
         self.file.build(build)
 
     def __create_header(self, build):
@@ -121,20 +135,73 @@ class Report:
         build.append(Spacer(1, 20))
 
     def __create_section(self, paper, build):
-        authors = ", ".join([a.name for a in paper.authors])
-        build.append(Paragraph(paper.title, style=self.subtitle_style))
+        authors = ", ".join([a.name for a in paper["authors"]])
+        build.append(Paragraph(paper["title"], style=self.subtitle_style))
         build.append(Spacer(1, 2))
         build.append(Paragraph(authors, style=self.author_style))
         build.append(Spacer(1, 5))
-        build.append(Paragraph(paper.summary, style=self.summary_style))
+        
+        build.append(Paragraph(
+            f'<b>What\'s New:</b> {paper["summary"].get("whats new", "")}', 
+            style=self.summary_style))
+        build.append(Spacer(1, 5))
+        build.append(Paragraph(
+            f'<b>Technical Details:</b> {paper["summary"].get("technical details", "")}', 
+            style=self.summary_style))
+        build.append(Spacer(1, 5))
+        build.append(Paragraph(
+            f'<b>Results:</b> {paper["summary"].get("results", "")}', 
+            style=self.summary_style))
 
-        if len(paper.links) > 0:
+        if len(paper["links"]) > 0:
             build.append(Spacer(1, 5))
-            link = "<a href='{}'>link: {}</a>".format(paper.links[0], paper.links[0])
+            link = "<a href='{}'>link: {}</a>".format(paper["links"][0], paper["links"][0])
             build.append(Paragraph(link, self.link_style))
 
         build.append(Spacer(1, 15))
 
+class GPTSummarizer:
+    def __init__(self, key, retry, model, max_tokens, prompt):
+        self.client = openai.OpenAI(api_key=key)
+        self.retry = retry
+        self.model = model
+        self.max_tokens = max_tokens
+        self.prompt = prompt
+    
+    def __summarize(self, abstract):
+        for i in range(self.retry):
+            try:
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": self.prompt},
+                        {"role": "user", "content": abstract},
+                    ],
+                    max_tokens=self.max_tokens,
+                    response_format={"type": "json_object"}
+                )
+                return resp.choices[0].message.content.strip()
+            except Exception as e:
+                print(e)
+                # exponential backoff; no need to sleep for last attempt
+                if i != self.retry - 1:
+                    time.sleep(min(60, 10 + 5 ** i))
+        return ""
+
+    def summarize(self, papers):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()*2) as executor:
+            futures, result = {}, []
+            for pi in papers:
+                futures[
+                    executor.submit(
+                        lambda abstract: self.__summarize(abstract), 
+                        pi["abstract"]
+                    )
+                ] = pi
+            for f in concurrent.futures.as_completed(futures):
+                result.append(futures[f])
+                result[-1]["summary"] = json.loads(f.result())
+        return result
 
 def remove_stale_pdf(n):
     # sanity check
@@ -143,7 +210,7 @@ def remove_stale_pdf(n):
 
     if len(pdfs) > n:
         pdfs.sort()
-        os.system("rm {}".format(pdfs[0]))
+        os.system("rm {}".format(" ".join(pdfs[:len(pdfs) - n])))
 
 if __name__ == "__main__":
     config_file = sys.argv[1]
@@ -152,9 +219,15 @@ if __name__ == "__main__":
         query = ArxivQuery(conf)
         papers = query.get_papers()
         if len(papers) > 0:
-            # need filtering with GPT
-            # arbitrary for now until GPT filter
-            report = Report(papers[:int(conf["num-reports"])])
+            gpt = GPTSummarizer(
+                sys.argv[2],
+                int(conf["openai-retry"]),
+                conf["openai-model"],
+                int(conf["openai-max-tokens"]),
+                SUMMARIZER_PROMPT
+            )
+            papers = gpt.summarize(papers)
+            report = Report(papers)
             report.generate()
             update_html(conf["html-file-name"], Report.filename())
             remove_stale_pdf(int(conf["archived-pdf-count"]))
